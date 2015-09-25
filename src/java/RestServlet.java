@@ -9,8 +9,11 @@ import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.Random;
 import java.util.Scanner;
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
@@ -61,10 +64,20 @@ public class RestServlet extends HttpServlet {
         if(parts.length == 4){
             parameter = parts[3];
         }
-        
+        int id;
+        if(parameter.toLowerCase().equals("random")){
+            Random r = new Random();
+            List<Integer> ids = new ArrayList();
+            for (Map.Entry<Integer, String> entrySet : quotes.entrySet()) {
+                ids.add(entrySet.getKey());
+            }
+
+            id = ids.get(r.nextInt(ids.size()));
+        }else{
+            id = Integer.parseInt(parameter);
+        }
         JsonObject quote = new JsonObject();
-        int key = Integer.parseInt(parameter);
-        quote.addProperty("quote", quotes.get(key));
+        quote.addProperty("quote", quotes.get(id));
         String jsonResponse = new Gson().toJson(quote);
         
         try (PrintWriter out = response.getWriter()) {
@@ -143,7 +156,27 @@ public class RestServlet extends HttpServlet {
     
     @Override
     protected void doDelete(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
-        super.doDelete(req, resp); //To change body of generated methods, choose Tools | Templates.
+        resp.setContentType("application/json");
+
+        String[] parts = req.getRequestURI().split("/");
+        String parameter = null;
+        if(parts.length == 4){
+            parameter = parts[3];
+        }
+        
+        int id = Integer.parseInt(parameter);
+        
+        String quote = quotes.get(id);
+        quotes.remove(id);
+        
+        JsonObject jsonOut = new JsonObject();
+        jsonOut.addProperty("quote", quote);
+        String jsonResponse = new Gson().toJson(jsonOut);
+        
+        try (PrintWriter out = resp.getWriter()) {
+            /* TODO output your page here. You may use following sample code. */
+            out.println(jsonResponse);
+        }
     }
 
  
