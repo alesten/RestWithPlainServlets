@@ -6,11 +6,85 @@ and open the template in the editor.
 -->
 <html>
     <head>
-        <title>TODO supply a title</title>
+        <title>Quote of today</title>
         <meta charset="UTF-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <script src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.3/jquery.min.js"></script>
     </head>
     <body>
-        <div>TODO write content</div>
+        <h2>Quote of today</h2>
+        <span id="quote"></span><br>
+        <button onclick="getRandomQuote();">New Quote</button>
+        
+        <br>
+        <h2>Create quote</h2>
+        <input type="text" placeholder="quote" name="create" />
+        <button onclick="createQuote();">Create quote</button>
+        
+        <br>
+        <h2>Edit quote</h2>
+        <input type="text" placeholder="quote" name="editQuote" />
+        <input type="text" placeholder="id" name="editId" />
+        <button onclick="editQuote();">Edit quote</button>
+        
+        <br>
+        <h2>Delete quote</h2>
+        <input type="text" placeholder="id" name="deleteId" />
+        <button onclick="deleteQuote();">Delete quote</button>
+        <script>
+            $(document).ready(function (){
+                getRandomQuote();
+            });
+            
+            function getRandomQuote(){
+                $.ajax({
+                    url: "/api/quote/random",
+                    success: function (result) {
+                        $('#quote').html(result["quote"]);
+                    }
+                });
+            }
+            
+            function createQuote(){
+                var quote = $('input[name=create]').val();
+                var data = '{ quote : ' + quote + '}';
+                console.log(data);
+                $.ajax({
+                    url: "/api/quote",
+                    type: "POST",
+                    dataType: 'json',
+                    data: data,
+                    success: function (result) {
+                       $('#quote').html(result["quote"]);
+                    }
+                });
+            }
+            
+            function editQuote(){
+                var quote = $('input[name=editQuote]').val();
+                var id = $('input[name=editId]').val();
+                var data = '{ quote : ' + quote + '}';
+                console.log(data);
+                $.ajax({
+                    url: "/api/quote/" + id,
+                    type: "PUT",
+                    dataType: 'json',
+                    data: data,
+                    success: function (result) {
+                       $('#quote').html(result["quote"]);
+                    }
+                });
+            }
+            
+            function deleteQuote(){
+                var id = $('input[name=deleteId]').val();
+                $.ajax({
+                    url: "/api/quote/" + id,
+                    type: "DELETE",
+                    success: function (result) {
+                       $('#quote').html(result["quote"]);
+                    }
+                });
+            }
+        </script>
     </body>
 </html>
