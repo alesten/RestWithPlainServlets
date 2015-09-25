@@ -6,10 +6,12 @@
 
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Scanner;
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
@@ -30,6 +32,7 @@ public class RestServlet extends HttpServlet {
             put(3, "Behind every great man, is a women rolling her eyes");
         }
     };
+    private int nextId = 4;
 
     /**
      * Processes requests for both HTTP <code>GET</code> and <code>POST</code> methods.
@@ -81,18 +84,69 @@ public class RestServlet extends HttpServlet {
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
+        response.setContentType("application/json");
 
+        Scanner jsonScanner = new Scanner(request.getInputStream());
+        String json = "";
+        while(jsonScanner.hasNext()){
+            json += jsonScanner.nextLine();
+        }
+        
+        JsonObject newQuote = new JsonParser().parse(json).getAsJsonObject();
+        String quote = newQuote.get("quote").getAsString();
+        int id = nextId++;
+        quotes.put(id, quote);
+        
+        JsonObject jsonOut = new JsonObject();
+        jsonOut.addProperty("id", id);
+        jsonOut.addProperty("quote", quotes.get(id));
+        String jsonResponse = new Gson().toJson(jsonOut);
+        
+        try (PrintWriter out = response.getWriter()) {
+            /* TODO output your page here. You may use following sample code. */
+            out.println(jsonResponse);
+        }
     }
 
+    @Override
+    protected void doPut(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+        resp.setContentType("application/json");
+
+        String[] parts = req.getRequestURI().split("/");
+        String parameter = null;
+        if(parts.length == 4){
+            parameter = parts[3];
+        }
+        
+        int id = Integer.parseInt(parameter);
+        
+        Scanner jsonScanner = new Scanner(req.getInputStream());
+        String json = "";
+        while(jsonScanner.hasNext()){
+            json += jsonScanner.nextLine();
+        }
+        
+        JsonObject newQuote = new JsonParser().parse(json).getAsJsonObject();
+        
+        quotes.put(id, newQuote.get("quote").getAsString());
+        
+        JsonObject jsonOut = new JsonObject();
+        jsonOut.addProperty("id", id);
+        jsonOut.addProperty("quote", quotes.get(id));
+        String jsonResponse = new Gson().toJson(jsonOut);
+        
+        try (PrintWriter out = resp.getWriter()) {
+            /* TODO output your page here. You may use following sample code. */
+            out.println(jsonResponse);
+        }
+    }
+    
     @Override
     protected void doDelete(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
         super.doDelete(req, resp); //To change body of generated methods, choose Tools | Templates.
     }
 
-    @Override
-    protected void doPut(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
-        super.doPut(req, resp); //To change body of generated methods, choose Tools | Templates.
-    }
+ 
 
     /**
      * Returns a short description of the servlet.
